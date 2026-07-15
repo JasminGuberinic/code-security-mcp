@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added (continued)
+- **JavaScript/TypeScript support** via a `JavaScriptAnalyzer` adapter backed by
+  ESLint + eslint-plugin-security (native, source-based). It applies its own flat
+  security config (`--no-config-lookup`) so the project's ESLint setup is not
+  used, and runs from the target directory. Configured via `KSM_ESLINT_BIN` and
+  `KSM_ESLINT_CONFIG` (a copy of `configs/eslint.security.config.mjs`).
 - **C# support** via a `CSharpAnalyzer` adapter backed by the Roslyn security
   analyzers. It builds the project with `AnalysisMode=None` +
   `AnalysisModeSecurity=All` and reads the SARIF `ErrorLog`, so only security

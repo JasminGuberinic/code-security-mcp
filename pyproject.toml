@@ -10,16 +10,16 @@
 [project]
 name = "code-security-mcp"
 version = "0.1.0"
-description = "A security MCP server for AI coding agents: each language via its native analyzer — Kotlin (detekt), Java (SpotBugs+FindSecBugs), Python (Bandit), C# (Roslyn) — plus diff review and secure patterns."
+description = "A security MCP server for AI coding agents: each language via its native analyzer — Kotlin (detekt), Java (SpotBugs+FindSecBugs), Python (Bandit), C# (Roslyn), JS/TS (ESLint) — plus diff review and secure patterns."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Jasmin Guberinic" }]
 keywords = [
     "mcp", "model-context-protocol", "security", "sast", "static-analysis",
-    "kotlin", "java", "jvm", "python", "csharp", "dotnet", "roslyn", "detekt",
-    "spotbugs", "findsecbugs", "bandit", "spring-security", "ai-agents",
-    "claude-code",
+    "kotlin", "java", "jvm", "python", "csharp", "dotnet", "roslyn", "javascript",
+    "typescript", "eslint", "detekt", "spotbugs", "findsecbugs", "bandit",
+    "spring-security", "ai-agents", "claude-code",
 ]
 
 # Runtime dependencies. We keep this list deliberately tiny:

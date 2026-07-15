@@ -20,6 +20,7 @@ from pathlib import Path
 
 from code_security_mcp.adapters.bandit_analyzer import PythonAnalyzer
 from code_security_mcp.adapters.detekt_analyzer import DetektAnalyzer, DetektConfig
+from code_security_mcp.adapters.eslint_analyzer import EslintConfig, JavaScriptAnalyzer
 from code_security_mcp.adapters.pattern_catalog import InMemorySecurePatternCatalog
 from code_security_mcp.adapters.roslyn_analyzer import CSharpAnalyzer, RoslynConfig
 from code_security_mcp.adapters.routing_analyzer import RoutingAnalyzer
@@ -143,12 +144,16 @@ def _build_analyzer() -> RoutingAnalyzer:
     if csharp is not None:
         analyzers.append(csharp)
 
+    javascript = _try_build_javascript()  # JS/TS (ESLint + eslint-plugin-security)
+    if javascript is not None:
+        analyzers.append(javascript)
+
     if not analyzers:
         raise RuntimeError(
             "No analyzer configured. Configure detekt (KSM_JAVA, "
             "KSM_DETEKT_CLI_JAR, KSM_PLUGIN_JARS), SpotBugs (KSM_JAVA, "
-            "KSM_SPOTBUGS_JAR, KSM_FINDSECBUGS_JARS), and/or Roslyn "
-            "(KSM_DOTNET_ROOT), and/or install bandit."
+            "KSM_SPOTBUGS_JAR, KSM_FINDSECBUGS_JARS), Roslyn (KSM_DOTNET_ROOT), "
+            "and/or ESLint (KSM_ESLINT_BIN, KSM_ESLINT_CONFIG), and/or install bandit."
         )
     return RoutingAnalyzer(tuple(analyzers))
 
@@ -199,6 +204,17 @@ def _try_build_csharp() -> CSharpAnalyzer | None:
         cli_home=_optional_path_from_env("KSM_DOTNET_CLI_HOME"),
     )
     return CSharpAnalyzer(config)
+
+
+def _try_build_javascript() -> JavaScriptAnalyzer | None:
+    """Build the JS/TS analyzer, or None if ESLint is not configured."""
+    if not _all_env_present("KSM_ESLINT_BIN", "KSM_ESLINT_CONFIG"):
+        return None
+    config = EslintConfig(
+        eslint_executable=Path(_required_env("KSM_ESLINT_BIN")),
+        config_file=Path(_required_env("KSM_ESLINT_CONFIG")),
+    )
+    return JavaScriptAnalyzer(config)
 
 
 def _build_pattern_use_case() -> SuggestSecurePatternUseCase:

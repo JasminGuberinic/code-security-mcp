@@ -12,8 +12,9 @@ security tool**, not one generic scanner stretched across everything.
 > **A specialist, not a generalist.** Kotlin is analyzed by **detekt** with a
 > 216-rule, framework-aware ruleset (Spring, WebFlux, Ktor, Quarkus, Micronaut,
 > Vert.x); Java by **SpotBugs + FindSecBugs**; Python by **Bandit**; C# by the
-> **Roslyn** security analyzers — each the established native security analyzer
-> for its language, routed automatically.
+> **Roslyn** security analyzers; JS/TS by **ESLint + eslint-plugin-security** —
+> each the established native security analyzer for its language, routed
+> automatically.
 >
 > _New languages arrive as their own native analyzer — never a single
 > lowest-common-denominator scanner._
@@ -39,12 +40,13 @@ generic scanner.
 | **Java** | SpotBugs + FindSecBugs | compiled bytecode — point at the **project root** (it finds `build/classes`, `target/classes`, …), a classes dir, or a `.jar` (build first) |
 | **Python** | Bandit | source (`.py`) — no build, just `pip install` |
 | **C#** | Roslyn security analyzers | builds the project — point at a `.sln`, `.csproj`, or its directory |
+| **JavaScript / TypeScript** | ESLint + eslint-plugin-security | source (`.js`, `.ts`, `.jsx`, `.tsx`, …) |
 
 ## Tools
 
 | Tool | What it does |
 |------|--------------|
-| `security_scan(path)` | Scan a file/directory (Kotlin, Java, Python, or C#) and return every security finding (rule, line, severity, CWE). |
+| `security_scan(path)` | Scan a file/directory (Kotlin, Java, Python, C#, or JS/TS) and return every security finding (rule, line, severity, CWE). |
 | `review_diff(diff)` | Review a unified diff and flag only the issues the change *introduces* — a pre-commit self-check. |
 | `secure_pattern(task, framework?)` | Get the vetted secure way to do a risky task — *before* writing it. |
 
@@ -93,6 +95,7 @@ cases do not change.
 - Java: a JDK + the SpotBugs jar + the FindSecBugs plugin jar
 - Python: Bandit (`pip install "code-security-mcp[python]"`) — no JDK, no jars
 - C#: the .NET SDK (its Roslyn security analyzers are built in)
+- JS/TS: Node.js + ESLint with `eslint-plugin-security` (and `typescript-eslint`)
 
 Each analyzer is optional and enabled independently — configure only the
 languages you need. (Python auto-enables whenever Bandit is installed.)
@@ -113,6 +116,8 @@ The server locates its tools through environment variables:
 | `KSM_DOTNET_ROOT` | C#: root of the .NET SDK install |
 | `KSM_NUGET_PACKAGES` | C#: _(optional)_ NuGet cache dir (keeps restores isolated) |
 | `KSM_DOTNET_CLI_HOME` | C#: _(optional)_ dotnet CLI home dir (keeps state isolated) |
+| `KSM_ESLINT_BIN` | JS/TS: path to the ESLint executable |
+| `KSM_ESLINT_CONFIG` | JS/TS: path to the security flat config (see `configs/`) |
 
 Python needs no variables — install Bandit and it is used automatically.
 
@@ -150,6 +155,7 @@ Each new language arrives as its own **native, framework-aware** analyzer adapte
 - ✅ **Java** — SpotBugs + FindSecBugs.
 - ✅ **Python** — Bandit.
 - ✅ **C#** — Roslyn security analyzers.
+- ✅ **JavaScript / TypeScript** — ESLint + eslint-plugin-security.
 - Deeper C# via **Security Code Scan** (taint analysis).
 - Zero-setup: auto-resolve the analyzer runtimes and rulesets.
 
