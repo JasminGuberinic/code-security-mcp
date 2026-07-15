@@ -1,0 +1,43 @@
+# ---------------------------------------------------------------------------
+# Project metadata and build configuration.
+#
+# We use the modern "src layout" (code lives under ./src/kotlin_security_mcp)
+# so that tests always import the *installed* package, never accidental files
+# from the working directory. This is the layout most professional Python
+# projects use today.
+# ---------------------------------------------------------------------------
+
+[project]
+name = "kotlin-security-mcp"
+version = "0.1.0"
+description = "An MCP server that exposes a 216-rule, framework-aware Kotlin/JVM security analyzer to AI coding agents."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Jasmin Guberinic" }]
+keywords = ["mcp", "kotlin", "security", "detekt", "static-analysis", "ai-agents"]
+
+# Runtime dependencies. We keep this list deliberately tiny:
+#   - "mcp" is the official Model Context Protocol SDK (the server framework).
+# Everything else we need (subprocess, json, pathlib) is in the standard library.
+dependencies = [
+    "mcp>=1.2.0",
+]
+
+[project.optional-dependencies]
+# Tools needed only for development/testing, not at runtime.
+dev = [
+    "pytest>=8.0",
+]
+
+# This exposes a console command `kotlin-security-mcp` that starts the server.
+# MCP clients (Claude Code, Cursor) will launch the server through this entry point.
+[project.scripts]
+kotlin-security-mcp = "kotlin_security_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kotlin_security_mcp"]
