@@ -19,6 +19,21 @@ security tool**, not one generic scanner stretched across everything.
 > _New languages arrive as their own native analyzer — never a single
 > lowest-common-denominator scanner._
 
+## Quickstart
+
+```bash
+git clone https://github.com/JasminGuberinic/code-security-mcp
+cd code-security-mcp
+python3 -m venv .venv && .venv/bin/pip install -e ".[python]"
+
+# Download the analyzers into an isolated cache (nothing global is touched):
+./scripts/setup.sh                              # Kotlin + Java
+./scripts/setup.sh --with-dotnet --with-eslint  # + C# and JS/TS (optional)
+```
+
+The script prints the `claude mcp add …` command to paste. Python works out of
+the box — the `[python]` extra installs Bandit.
+
 ## Why
 
 Generic assistants and multi-language scanners are shallow on framework idioms —
@@ -102,6 +117,8 @@ languages you need. (Python auto-enables whenever Bandit is installed.)
 
 ## Configuration
 
+`./scripts/setup.sh` fills these in for you and prints the ready-to-paste
+command; the reference below is for when you want to point at your own tools.
 The server locates its tools through environment variables:
 
 | Variable | Meaning |

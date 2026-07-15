@@ -7,6 +7,10 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added (continued)
+- **One-command setup** (`scripts/setup.sh`): downloads every analyzer into an
+  isolated cache (Kotlin ruleset + detekt from Maven Central/GitHub, SpotBugs +
+  FindSecBugs; optional isolated .NET SDK and ESLint) and prints the
+  `claude mcp add` command. Nothing global is modified.
 - **JavaScript/TypeScript support** via a `JavaScriptAnalyzer` adapter backed by
   ESLint + eslint-plugin-security (native, source-based). It applies its own flat
   security config (`--no-config-lookup`) so the project's ESLint setup is not
