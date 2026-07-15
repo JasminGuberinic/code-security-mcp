@@ -63,8 +63,15 @@ def _rule_id_of(result: dict[str, Any]) -> str:
 
 
 def _message_of(result: dict[str, Any]) -> str:
-    """The human-readable description of the issue."""
-    return result.get("message", {}).get("text", "").strip()
+    """The human-readable description of the issue.
+
+    SARIF 2.x uses a message object ({"text": ...}); the older SARIF 1.x used a
+    bare string. We accept either so reports from any tool/version parse cleanly.
+    """
+    message = result.get("message", "")
+    if isinstance(message, dict):
+        return message.get("text", "").strip()
+    return str(message).strip()
 
 
 def _severity_of(result: dict[str, Any]) -> Severity:

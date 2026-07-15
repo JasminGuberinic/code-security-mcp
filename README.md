@@ -11,11 +11,12 @@ security tool**, not one generic scanner stretched across everything.
 
 > **A specialist, not a generalist.** Kotlin is analyzed by **detekt** with a
 > 216-rule, framework-aware ruleset (Spring, WebFlux, Ktor, Quarkus, Micronaut,
-> Vert.x); Java by **SpotBugs + FindSecBugs**; Python by **Bandit** — each the
-> established native security analyzer for its language, routed automatically.
+> Vert.x); Java by **SpotBugs + FindSecBugs**; Python by **Bandit**; C# by the
+> **Roslyn** security analyzers — each the established native security analyzer
+> for its language, routed automatically.
 >
-> _New languages arrive as their own native analyzer (C# via Roslyn next) —
-> never a single lowest-common-denominator scanner._
+> _New languages arrive as their own native analyzer — never a single
+> lowest-common-denominator scanner._
 
 ## Why
 
@@ -37,12 +38,13 @@ generic scanner.
 | **Kotlin** | detekt + the 216-rule framework-aware ruleset | source (`.kt`, `.kts`) |
 | **Java** | SpotBugs + FindSecBugs | compiled bytecode — point at the **project root** (it finds `build/classes`, `target/classes`, …), a classes dir, or a `.jar` (build first) |
 | **Python** | Bandit | source (`.py`) — no build, just `pip install` |
+| **C#** | Roslyn security analyzers | builds the project — point at a `.sln`, `.csproj`, or its directory |
 
 ## Tools
 
 | Tool | What it does |
 |------|--------------|
-| `security_scan(path)` | Scan a file/directory (Kotlin, Java, or Python) and return every security finding (rule, line, severity, CWE). |
+| `security_scan(path)` | Scan a file/directory (Kotlin, Java, Python, or C#) and return every security finding (rule, line, severity, CWE). |
 | `review_diff(diff)` | Review a unified diff and flag only the issues the change *introduces* — a pre-commit self-check. |
 | `secure_pattern(task, framework?)` | Get the vetted secure way to do a risky task — *before* writing it. |
 
@@ -90,6 +92,7 @@ cases do not change.
 - Kotlin: a JDK + the detekt CLI jar + the ruleset jar(s)
 - Java: a JDK + the SpotBugs jar + the FindSecBugs plugin jar
 - Python: Bandit (`pip install "code-security-mcp[python]"`) — no JDK, no jars
+- C#: the .NET SDK (its Roslyn security analyzers are built in)
 
 Each analyzer is optional and enabled independently — configure only the
 languages you need. (Python auto-enables whenever Bandit is installed.)
@@ -107,6 +110,9 @@ The server locates its tools through environment variables:
 | `KSM_SPOTBUGS_JAR` | Java: SpotBugs engine jar |
 | `KSM_FINDSECBUGS_JARS` | Java: comma-separated plugin jar(s) (FindSecBugs) |
 | `KSM_JAVA_AUXCLASSPATH` | Java: _(optional)_ comma-separated dependency jars/dirs for more accurate analysis |
+| `KSM_DOTNET_ROOT` | C#: root of the .NET SDK install |
+| `KSM_NUGET_PACKAGES` | C#: _(optional)_ NuGet cache dir (keeps restores isolated) |
+| `KSM_DOTNET_CLI_HOME` | C#: _(optional)_ dotnet CLI home dir (keeps state isolated) |
 
 Python needs no variables — install Bandit and it is used automatically.
 
@@ -143,8 +149,9 @@ Each new language arrives as its own **native, framework-aware** analyzer adapte
 - ✅ **Kotlin** — detekt + the 216-rule framework-aware ruleset.
 - ✅ **Java** — SpotBugs + FindSecBugs.
 - ✅ **Python** — Bandit.
-- **C#** — via **Roslyn** analyzers.
-- Zero-setup: auto-resolve the JVM analyzer runtimes and rulesets.
+- ✅ **C#** — Roslyn security analyzers.
+- Deeper C# via **Security Code Scan** (taint analysis).
+- Zero-setup: auto-resolve the analyzer runtimes and rulesets.
 
 ## License
 

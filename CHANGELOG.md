@@ -6,7 +6,17 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added (continued)
+- **C# support** via a `CSharpAnalyzer` adapter backed by the Roslyn security
+  analyzers. It builds the project with `AnalysisMode=None` +
+  `AnalysisModeSecurity=All` and reads the SARIF `ErrorLog`, so only security
+  findings are reported and the user's project is not modified. Point it at a
+  `.sln`, `.csproj`, or directory. Isolated via `KSM_DOTNET_ROOT` (+ optional
+  `KSM_NUGET_PACKAGES`, `KSM_DOTNET_CLI_HOME`).
+
 ### Changed
+- The SARIF parser now accepts both SARIF 2.x (message object) and 1.x (message
+  string), so reports from any tool/version parse cleanly.
 - Java analysis now **locates the compiled binaries itself**: point `security_scan`
   at a project/module root and it finds the build output (`build/classes/...`,
   `target/classes`, `out/...`), a classes directory, or a `.jar`. Optional

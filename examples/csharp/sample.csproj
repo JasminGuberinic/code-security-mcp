@@ -1,0 +1,8 @@
+<!-- Minimal C# project so `security_scan` can build and analyze the sample.
+     C# analysis runs the Roslyn security analyzers during `dotnet build`. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>

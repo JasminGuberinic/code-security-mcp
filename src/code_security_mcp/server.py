@@ -21,6 +21,7 @@ from pathlib import Path
 from code_security_mcp.adapters.bandit_analyzer import PythonAnalyzer
 from code_security_mcp.adapters.detekt_analyzer import DetektAnalyzer, DetektConfig
 from code_security_mcp.adapters.pattern_catalog import InMemorySecurePatternCatalog
+from code_security_mcp.adapters.roslyn_analyzer import CSharpAnalyzer, RoslynConfig
 from code_security_mcp.adapters.routing_analyzer import RoutingAnalyzer
 from code_security_mcp.adapters.spotbugs_analyzer import JavaAnalyzer, SpotBugsConfig
 from code_security_mcp.domain.ports import LanguageAnalyzer
@@ -138,11 +139,16 @@ def _build_analyzer() -> RoutingAnalyzer:
     if python is not None:
         analyzers.append(python)
 
+    csharp = _try_build_csharp()  # C# (Roslyn security analyzers)
+    if csharp is not None:
+        analyzers.append(csharp)
+
     if not analyzers:
         raise RuntimeError(
             "No analyzer configured. Configure detekt (KSM_JAVA, "
-            "KSM_DETEKT_CLI_JAR, KSM_PLUGIN_JARS) and/or SpotBugs (KSM_JAVA, "
-            "KSM_SPOTBUGS_JAR, KSM_FINDSECBUGS_JARS), and/or install bandit."
+            "KSM_DETEKT_CLI_JAR, KSM_PLUGIN_JARS), SpotBugs (KSM_JAVA, "
+            "KSM_SPOTBUGS_JAR, KSM_FINDSECBUGS_JARS), and/or Roslyn "
+            "(KSM_DOTNET_ROOT), and/or install bandit."
         )
     return RoutingAnalyzer(tuple(analyzers))
 
@@ -181,6 +187,18 @@ def _try_build_python() -> PythonAnalyzer | None:
     """
     analyzer = PythonAnalyzer()
     return analyzer if analyzer.is_available() else None
+
+
+def _try_build_csharp() -> CSharpAnalyzer | None:
+    """Build the C# analyzer, or None if the .NET SDK is not configured."""
+    if not _all_env_present("KSM_DOTNET_ROOT"):
+        return None
+    config = RoslynConfig(
+        dotnet_root=Path(_required_env("KSM_DOTNET_ROOT")),
+        nuget_packages=_optional_path_from_env("KSM_NUGET_PACKAGES"),
+        cli_home=_optional_path_from_env("KSM_DOTNET_CLI_HOME"),
+    )
+    return CSharpAnalyzer(config)
 
 
 def _build_pattern_use_case() -> SuggestSecurePatternUseCase:
