@@ -38,6 +38,25 @@ class SecurityAnalyzer(Protocol):
 
 
 @runtime_checkable
+class LanguageAnalyzer(SecurityAnalyzer, Protocol):
+    """A SecurityAnalyzer that also knows which targets it can handle.
+
+    This is what a *router* needs: given a file or directory, it must ask each
+    analyzer "is this yours?" before delegating. Detekt claims Kotlin; the
+    SpotBugs adapter claims compiled Java; a future Roslyn adapter would claim
+    C#. The router picks whoever says yes.
+    """
+
+    def supports(self, target: Path) -> bool:
+        """True when this analyzer can meaningfully scan `target`.
+
+        Implementations may also return False when their backing tool is not
+        available, so the router simply skips them instead of failing.
+        """
+        ...
+
+
+@runtime_checkable
 class SecurePatternCatalog(Protocol):
     """Anything that can look up secure recipes by framework and task.
 

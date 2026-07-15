@@ -10,14 +10,15 @@
 [project]
 name = "code-security-mcp"
 version = "0.1.0"
-description = "A framework-aware security MCP server for AI coding agents: 216-rule Kotlin/JVM (detekt) static analysis, diff review, and secure patterns."
+description = "A framework-aware security MCP server for AI coding agents: native JVM analysis (Kotlin via detekt, Java via SpotBugs+FindSecBugs), diff review, and secure patterns."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Jasmin Guberinic" }]
 keywords = [
-    "mcp", "model-context-protocol", "kotlin", "jvm", "security", "sast",
-    "detekt", "static-analysis", "spring-security", "ai-agents", "claude-code",
+    "mcp", "model-context-protocol", "kotlin", "java", "jvm", "security", "sast",
+    "detekt", "spotbugs", "findsecbugs", "static-analysis", "spring-security",
+    "ai-agents", "claude-code",
 ]
 
 # Runtime dependencies. We keep this list deliberately tiny:

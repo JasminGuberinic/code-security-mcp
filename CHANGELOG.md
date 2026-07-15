@@ -7,6 +7,10 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Java support** via a `JavaAnalyzer` adapter backed by SpotBugs + FindSecBugs
+  (native, security-focused). A `RoutingAnalyzer` now dispatches each target to
+  the analyzers that support it, so `security_scan` handles Kotlin and Java
+  through one tool. Java analysis runs on compiled bytecode (build first).
 - `review_diff(diff)` tool — parses a unified diff and reports only the security
   findings on lines the change adds (a pre-commit self-check for agents).
 - `secure_pattern(task, framework?)` tool — returns vetted before/after Kotlin

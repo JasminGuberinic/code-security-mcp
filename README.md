@@ -6,13 +6,17 @@
 
 **A framework-aware security [MCP](https://modelcontextprotocol.io) server for AI
 coding agents.** It gives Claude Code, Cursor, and other agents real,
-**framework-specific** security intelligence for **Kotlin / JVM** backends —
-while they write, not after.
+**framework-specific** security intelligence for **JVM backends (Kotlin and
+Java)** — while they write, not after.
 
-> **The security specialist for AI agents writing JVM/Kotlin backend code.**
-> Not generic navigation (Serena), not generic SAST (Snyk/Semgrep): a
-> *framework-aware* specialist that understands Spring, WebFlux, Ktor, Quarkus,
-> Micronaut, and Vert.x idioms.
+> **The security specialist for AI agents writing JVM backend code.**
+> Not generic navigation (Serena), not one-size-fits-all SAST: each language is
+> handled by its **best native security analyzer** — **detekt** for Kotlin,
+> **SpotBugs + FindSecBugs** for Java.
+>
+> _Scope note: today it covers **Kotlin** and **Java**. Other languages (C#,
+> Python) will each get their own native analyzer — see the roadmap — never a
+> single generic scanner._
 
 ## Why
 
@@ -24,19 +28,28 @@ wraps a **216-rule, framework-aware analyzer** (the
 detekt ruleset) and exposes it to agents through three tools.
 
 **Design principle:** each language is handled by its **best native, framework-aware
-analyzer** — detekt for Kotlin today, Roslyn for C# planned — never a single
-lowest-common-denominator generic scanner.
+analyzer** — **detekt** for Kotlin, **SpotBugs + FindSecBugs** for Java, Roslyn
+for C# planned — routed automatically, never a single lowest-common-denominator
+generic scanner.
+
+## Languages
+
+| Language | Analyzer | Analyzes |
+|----------|----------|----------|
+| **Kotlin** | detekt + the 216-rule framework ruleset | source (`.kt`, `.kts`) |
+| **Java** | SpotBugs + FindSecBugs | compiled bytecode (`.class`, `.jar`) — build first |
 
 ## Tools
 
 | Tool | What it does |
 |------|--------------|
-| `security_scan(path)` | Scan a Kotlin file/directory and return every security finding (rule, line, severity, CWE). |
+| `security_scan(path)` | Scan a file/directory (Kotlin or Java) and return every security finding (rule, line, severity, CWE). |
 | `review_diff(diff)` | Review a unified diff and flag only the issues the change *introduces* — a pre-commit self-check. |
 | `secure_pattern(task, framework?)` | Get the vetted secure way to do a risky task — *before* writing it. |
 
-`security_scan` returns **security** findings only — detekt's built-in
-style/complexity rules are switched off, so the agent gets signal, not noise.
+For Kotlin, `security_scan` returns **security** findings only — detekt's
+built-in style/complexity rules are switched off, so the agent gets signal, not
+noise.
 
 ### Example
 
@@ -63,17 +76,24 @@ application/         use cases: scan / review_diff / secure_pattern
    │
 domain/              Finding, ScanResult, ports         (pure vocabulary)
    ↑ implemented by
-adapters/            DetektAnalyzer, SARIF & diff parsers, pattern catalog
+adapters/            DetektAnalyzer, JavaAnalyzer, RoutingAnalyzer,
+                     SARIF & diff parsers, pattern catalog
 ```
 
-Adding a language = adding a native analyzer adapter that implements the same
-`SecurityAnalyzer` port. The domain and use cases do not change.
+A `RoutingAnalyzer` sends each target to the analyzers that support it, so the
+use cases treat "one language" and "many" identically. Adding a language = one
+new adapter implementing the same `LanguageAnalyzer` port — the domain and use
+cases do not change.
 
 ## Requirements
 
 - Python 3.11+
-- A JDK (for the detekt runtime)
-- The detekt CLI jar and the `scanner-all` ruleset jar(s)
+- A JDK (both analyzers run on the JVM)
+- Kotlin: the detekt CLI jar + the ruleset jar(s)
+- Java: the SpotBugs jar + the FindSecBugs plugin jar
+
+Each analyzer is optional and enabled independently — configure only the
+languages you need.
 
 ## Configuration
 
@@ -81,10 +101,12 @@ The server locates its tools through environment variables:
 
 | Variable | Meaning |
 |----------|---------|
-| `KSM_JAVA` | Path to the `java` executable |
-| `KSM_DETEKT_CLI_JAR` | Path to the detekt CLI (`-all`) jar |
-| `KSM_PLUGIN_JARS` | Comma-separated ruleset jar(s) |
-| `KSM_DETEKT_CONFIG` | _(optional)_ path to a `detekt.yml` |
+| `KSM_JAVA` | Path to the `java` executable (shared) |
+| `KSM_DETEKT_CLI_JAR` | Kotlin: detekt CLI (`-all`) jar |
+| `KSM_PLUGIN_JARS` | Kotlin: comma-separated ruleset jar(s) |
+| `KSM_DETEKT_CONFIG` | Kotlin: _(optional)_ path to a `detekt.yml` |
+| `KSM_SPOTBUGS_JAR` | Java: SpotBugs engine jar |
+| `KSM_FINDSECBUGS_JARS` | Java: comma-separated plugin jar(s) (FindSecBugs) |
 
 ## Use with Claude Code
 
@@ -112,9 +134,14 @@ fixtures, so it needs neither a JDK nor detekt.
 
 ## Roadmap
 
-- Native C# support via **Roslyn** analyzers (same specialist approach).
-- Framework-aware Python security.
-- Zero-setup: auto-resolve the detekt runtime and ruleset.
+Each new language arrives as its own **native, framework-aware** analyzer adapter
+(never a generic multi-language scanner):
+
+- ✅ **Kotlin** — detekt + the 216-rule framework ruleset.
+- ✅ **Java** — SpotBugs + FindSecBugs.
+- **C#** — via **Roslyn** analyzers.
+- **Python** — framework-aware (Django / FastAPI) security.
+- Zero-setup: auto-resolve the analyzer runtimes and rulesets.
 
 ## License
 

@@ -14,8 +14,12 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from code_security_mcp.adapters.language import target_has_extension
 from code_security_mcp.adapters.sarif import parse_sarif_report
 from code_security_mcp.domain.models import ScanResult
+
+# The file types detekt understands: Kotlin source and Kotlin scripts.
+_KOTLIN_EXTENSIONS: tuple[str, ...] = (".kt", ".kts")
 
 
 @dataclass(frozen=True)
@@ -52,6 +56,10 @@ class DetektAnalyzer:
     def __init__(self, config: DetektConfig) -> None:
         # Hold the "where is everything" configuration for the whole object.
         self._config = config
+
+    def supports(self, target: Path) -> bool:
+        """True when the target is, or contains, Kotlin source."""
+        return target_has_extension(target, _KOTLIN_EXTENSIONS)
 
     def scan(self, target: Path) -> ScanResult:
         """Run detekt over `target` and return the findings it reports.

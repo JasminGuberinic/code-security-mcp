@@ -20,6 +20,9 @@ from pathlib import Path
 
 from code_security_mcp.adapters.detekt_analyzer import DetektAnalyzer, DetektConfig
 from code_security_mcp.adapters.pattern_catalog import InMemorySecurePatternCatalog
+from code_security_mcp.adapters.routing_analyzer import RoutingAnalyzer
+from code_security_mcp.adapters.spotbugs_analyzer import JavaAnalyzer, SpotBugsConfig
+from code_security_mcp.domain.ports import LanguageAnalyzer
 from code_security_mcp.application.review_diff import ReviewDiffUseCase
 from code_security_mcp.application.scan_code import ScanCodeUseCase
 from code_security_mcp.application.suggest_secure_pattern import (
@@ -112,13 +115,37 @@ def _build_review_diff_use_case() -> ReviewDiffUseCase:
     return ReviewDiffUseCase(_build_analyzer())
 
 
-def _build_analyzer() -> DetektAnalyzer:
-    """Build the detekt analyzer from environment configuration.
+def _build_analyzer() -> RoutingAnalyzer:
+    """Build the multi-language analyzer from environment configuration.
 
-    We read the "where is everything" paths from environment variables so the
-    server runs on any machine without code changes. This is the single place
-    allowed to name a concrete analyzer; everything downstream sees only ports.
+    We enable each specialist only if its tools are configured, then route
+    between them. This is the single place allowed to name concrete analyzers;
+    everything downstream sees only ports. Adding a language (e.g. C#/Roslyn)
+    means adding one more `_try_build_*` here — nothing else changes.
     """
+    analyzers: list[LanguageAnalyzer] = []
+
+    detekt = _try_build_detekt()  # Kotlin
+    if detekt is not None:
+        analyzers.append(detekt)
+
+    java = _try_build_java()  # Java (SpotBugs + FindSecBugs)
+    if java is not None:
+        analyzers.append(java)
+
+    if not analyzers:
+        raise RuntimeError(
+            "No analyzer configured. Set the detekt variables (KSM_JAVA, "
+            "KSM_DETEKT_CLI_JAR, KSM_PLUGIN_JARS) and/or the SpotBugs variables "
+            "(KSM_JAVA, KSM_SPOTBUGS_JAR, KSM_FINDSECBUGS_JARS)."
+        )
+    return RoutingAnalyzer(tuple(analyzers))
+
+
+def _try_build_detekt() -> DetektAnalyzer | None:
+    """Build the Kotlin analyzer, or None if detekt is not configured."""
+    if not _all_env_present("KSM_JAVA", "KSM_DETEKT_CLI_JAR", "KSM_PLUGIN_JARS"):
+        return None
     config = DetektConfig(
         java_executable=Path(_required_env("KSM_JAVA")),
         detekt_cli_jar=Path(_required_env("KSM_DETEKT_CLI_JAR")),
@@ -126,6 +153,18 @@ def _build_analyzer() -> DetektAnalyzer:
         config_file=_optional_path_from_env("KSM_DETEKT_CONFIG"),
     )
     return DetektAnalyzer(config)
+
+
+def _try_build_java() -> JavaAnalyzer | None:
+    """Build the Java analyzer, or None if SpotBugs is not configured."""
+    if not _all_env_present("KSM_JAVA", "KSM_SPOTBUGS_JAR", "KSM_FINDSECBUGS_JARS"):
+        return None
+    config = SpotBugsConfig(
+        java_executable=Path(_required_env("KSM_JAVA")),
+        spotbugs_jar=Path(_required_env("KSM_SPOTBUGS_JAR")),
+        plugin_jars=_paths_from_env("KSM_FINDSECBUGS_JARS"),
+    )
+    return JavaAnalyzer(config)
 
 
 def _build_pattern_use_case() -> SuggestSecurePatternUseCase:
@@ -177,6 +216,14 @@ def _required_env(name: str) -> str:
     if not value:
         raise RuntimeError(f"Missing required environment variable: {name}")
     return value
+
+
+def _all_env_present(*names: str) -> bool:
+    """True only if every named environment variable is set and non-empty.
+
+    Used to decide whether a given analyzer is configured on this machine.
+    """
+    return all(os.environ.get(name) for name in names)
 
 
 def _paths_from_env(name: str) -> tuple[Path, ...]:
