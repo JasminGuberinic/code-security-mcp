@@ -168,6 +168,7 @@ def _try_build_java() -> JavaAnalyzer | None:
         java_executable=Path(_required_env("KSM_JAVA")),
         spotbugs_jar=Path(_required_env("KSM_SPOTBUGS_JAR")),
         plugin_jars=_paths_from_env("KSM_FINDSECBUGS_JARS"),
+        aux_classpath=_optional_paths_from_env("KSM_JAVA_AUXCLASSPATH"),
     )
     return JavaAnalyzer(config)
 
@@ -251,6 +252,14 @@ def _optional_path_from_env(name: str) -> Path | None:
     """Read an optional path; return None when the variable is unset."""
     value = os.environ.get(name)
     return Path(value) if value else None
+
+
+def _optional_paths_from_env(name: str) -> tuple[Path, ...]:
+    """Read an optional comma-separated path list; empty tuple when unset."""
+    value = os.environ.get(name)
+    if not value:
+        return ()
+    return tuple(Path(part.strip()) for part in value.split(",") if part.strip())
 
 
 def main() -> None:

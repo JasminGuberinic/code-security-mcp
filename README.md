@@ -35,7 +35,7 @@ generic scanner.
 | Language | Analyzer | Analyzes |
 |----------|----------|----------|
 | **Kotlin** | detekt + the 216-rule framework-aware ruleset | source (`.kt`, `.kts`) |
-| **Java** | SpotBugs + FindSecBugs | compiled bytecode (`.class`, `.jar`) — build first |
+| **Java** | SpotBugs + FindSecBugs | compiled bytecode — point at the **project root** (it finds `build/classes`, `target/classes`, …), a classes dir, or a `.jar` (build first) |
 | **Python** | Bandit | source (`.py`) — no build, just `pip install` |
 
 ## Tools
@@ -106,6 +106,7 @@ The server locates its tools through environment variables:
 | `KSM_DETEKT_CONFIG` | Kotlin: _(optional)_ path to a `detekt.yml` |
 | `KSM_SPOTBUGS_JAR` | Java: SpotBugs engine jar |
 | `KSM_FINDSECBUGS_JARS` | Java: comma-separated plugin jar(s) (FindSecBugs) |
+| `KSM_JAVA_AUXCLASSPATH` | Java: _(optional)_ comma-separated dependency jars/dirs for more accurate analysis |
 
 Python needs no variables — install Bandit and it is used automatically.
 

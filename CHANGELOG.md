@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+- Java analysis now **locates the compiled binaries itself**: point `security_scan`
+  at a project/module root and it finds the build output (`build/classes/...`,
+  `target/classes`, `out/...`), a classes directory, or a `.jar`. Optional
+  `KSM_JAVA_AUXCLASSPATH` supplies dependency jars for more accurate analysis.
+
 ### Added
 - **Python support** via a `PythonAnalyzer` adapter backed by Bandit (native,
   source-based, no build step). It auto-enables whenever Bandit is installed

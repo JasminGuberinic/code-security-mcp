@@ -47,6 +47,19 @@ def test_router_merges_findings_from_all_supporting_analyzers(tmp_path):
     assert rule_ids == {"RuleA", "RuleB"}
 
 
+def _spotbugs_config(tmp_path, **overrides) -> SpotBugsConfig:
+    """A SpotBugsConfig whose engine jar exists, for supports()/command tests."""
+    spotbugs = tmp_path / "spotbugs.jar"
+    spotbugs.write_text("")  # must exist so availability passes
+    base = dict(
+        java_executable=Path("/opt/java/bin/java"),
+        spotbugs_jar=spotbugs,
+        plugin_jars=(tmp_path / "findsecbugs.jar",),
+    )
+    base.update(overrides)
+    return SpotBugsConfig(**base)
+
+
 def test_java_analyzer_skips_itself_when_spotbugs_missing(tmp_path):
     # Point at a non-existent SpotBugs jar: supports() must return False so the
     # router transparently skips Java analysis instead of failing.
@@ -55,29 +68,51 @@ def test_java_analyzer_skips_itself_when_spotbugs_missing(tmp_path):
         spotbugs_jar=tmp_path / "does-not-exist.jar",
         plugin_jars=(tmp_path / "fsb.jar",),
     )
-    analyzer = JavaAnalyzer(config)
-
     a_class = tmp_path / "Foo.class"
     a_class.write_bytes(b"\xca\xfe\xba\xbe")  # a fake .class file
-    assert analyzer.supports(a_class) is False
+    assert JavaAnalyzer(config).supports(a_class) is False
+
+
+def test_java_analyzer_finds_gradle_build_output(tmp_path):
+    # Simulate a Gradle project: source at the root, compiled classes under
+    # build/classes/java/main. Pointing at the project root must resolve to the
+    # build output — this is the "read the binaries" behavior.
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "App.java").write_text("class App {}")
+    build_main = tmp_path / "build" / "classes" / "java" / "main"
+    build_main.mkdir(parents=True)
+    (build_main / "App.class").write_bytes(b"\xca\xfe\xba\xbe")
+
+    analyzer = JavaAnalyzer(_spotbugs_config(tmp_path))
+    roots = analyzer._resolve_class_roots(tmp_path)
+
+    assert roots == (build_main,)
+    assert analyzer.supports(tmp_path) is True
+
+
+def test_java_analyzer_unsupported_when_only_source(tmp_path):
+    # A Java project that has not been built yet has no bytecode to read.
+    (tmp_path / "App.java").write_text("class App {}")
+    analyzer = JavaAnalyzer(_spotbugs_config(tmp_path))
+    assert analyzer.supports(tmp_path) is False
 
 
 def test_java_analyzer_command_is_well_formed(tmp_path):
-    spotbugs = tmp_path / "spotbugs.jar"
-    spotbugs.write_text("")  # exists, so supports() would pass availability
     plugin = tmp_path / "findsecbugs.jar"
-    config = SpotBugsConfig(
-        java_executable=Path("/opt/java/bin/java"),
-        spotbugs_jar=spotbugs,
-        plugin_jars=(plugin,),
+    classes = tmp_path / "classes"
+    classes.mkdir()
+    config = _spotbugs_config(
+        tmp_path, plugin_jars=(plugin,), aux_classpath=(tmp_path / "dep.jar",)
     )
     analyzer = JavaAnalyzer(config)
 
-    command = analyzer._build_command(tmp_path / "classes", tmp_path / "out.sarif")
+    command = analyzer._build_command((classes,), tmp_path / "out.sarif")
 
-    # The essentials must be present and in a sane shape.
     assert command[0] == "/opt/java/bin/java"
     assert "-textui" in command
     assert "-sarif" in command
     assert "-pluginList" in command
     assert str(plugin) in command
+    # aux classpath is passed when configured, and the class root comes last.
+    assert "-auxclasspath" in command
+    assert command[-1] == str(classes)
