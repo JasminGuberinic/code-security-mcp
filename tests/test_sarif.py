@@ -5,8 +5,8 @@ parsing logic without ever launching a JVM. Fast, deterministic, and they pin
 down every field mapping we care about.
 """
 
-from kotlin_security_mcp.adapters.sarif import parse_sarif_report
-from kotlin_security_mcp.domain.models import Severity
+from code_security_mcp.adapters.sarif import parse_sarif_report
+from code_security_mcp.domain.models import Severity
 
 
 def _sarif_with_one_result() -> dict:

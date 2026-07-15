@@ -18,14 +18,14 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from kotlin_security_mcp.adapters.detekt_analyzer import DetektAnalyzer, DetektConfig
-from kotlin_security_mcp.adapters.pattern_catalog import InMemorySecurePatternCatalog
-from kotlin_security_mcp.application.scan_code import ScanCodeUseCase
-from kotlin_security_mcp.application.suggest_secure_pattern import (
+from code_security_mcp.adapters.detekt_analyzer import DetektAnalyzer, DetektConfig
+from code_security_mcp.adapters.pattern_catalog import InMemorySecurePatternCatalog
+from code_security_mcp.application.scan_code import ScanCodeUseCase
+from code_security_mcp.application.suggest_secure_pattern import (
     SuggestSecurePatternUseCase,
 )
-from kotlin_security_mcp.domain.models import Finding
-from kotlin_security_mcp.domain.patterns import SecurePattern
+from code_security_mcp.domain.models import Finding
+from code_security_mcp.domain.patterns import SecurePattern
 
 # The SDK renamed FastMCP -> MCPServer. Import the current name, but fall back
 # to the old one so the server keeps working on either SDK generation.

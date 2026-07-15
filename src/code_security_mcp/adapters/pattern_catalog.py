@@ -8,7 +8,7 @@ free of any hard-coded content.
 
 from __future__ import annotations
 
-from kotlin_security_mcp.domain.patterns import SecurePattern
+from code_security_mcp.domain.patterns import SecurePattern
 
 # The curated recipes. Each keyword is lowercase; the matcher compares them
 # against the agent's free-text task, so pick words an agent would actually use.

@@ -7,8 +7,8 @@ matching `scan` method — no detekt, no JVM, no files to scan.
 
 import pytest
 
-from kotlin_security_mcp.application.scan_code import ScanCodeUseCase
-from kotlin_security_mcp.domain.models import Finding, ScanResult, Severity
+from code_security_mcp.application.scan_code import ScanCodeUseCase
+from code_security_mcp.domain.models import Finding, ScanResult, Severity
 
 
 class _FakeAnalyzer:

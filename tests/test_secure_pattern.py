@@ -2,8 +2,8 @@
 
 import pytest
 
-from kotlin_security_mcp.adapters.pattern_catalog import InMemorySecurePatternCatalog
-from kotlin_security_mcp.application.suggest_secure_pattern import (
+from code_security_mcp.adapters.pattern_catalog import InMemorySecurePatternCatalog
+from code_security_mcp.application.suggest_secure_pattern import (
     SuggestSecurePatternUseCase,
 )
 

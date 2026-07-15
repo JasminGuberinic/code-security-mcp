@@ -1,4 +1,4 @@
-# kotlin-security-mcp
+# code-security-mcp
 
 An [MCP](https://modelcontextprotocol.io) server that exposes a **216-rule,
 framework-aware Kotlin/JVM security analyzer** to AI coding agents (Claude Code,
@@ -82,7 +82,7 @@ claude mcp add kotlin-security -s user \
   -e KSM_JAVA=/path/to/java \
   -e KSM_DETEKT_CLI_JAR=/path/to/detekt-cli-<ver>-all.jar \
   -e KSM_PLUGIN_JARS=/path/to/scanner-core.jar,/path/to/scanner-spring-boot.jar,... \
-  -- /path/to/.venv/bin/kotlin-security-mcp
+  -- /path/to/.venv/bin/code-security-mcp
 ```
 
 Then ask the agent to scan a file, e.g. _"run security_scan on src/Main.kt"_.

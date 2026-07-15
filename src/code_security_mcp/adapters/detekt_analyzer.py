@@ -14,8 +14,8 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from kotlin_security_mcp.adapters.sarif import parse_sarif_report
-from kotlin_security_mcp.domain.models import ScanResult
+from code_security_mcp.adapters.sarif import parse_sarif_report
+from code_security_mcp.domain.models import ScanResult
 
 
 @dataclass(frozen=True)

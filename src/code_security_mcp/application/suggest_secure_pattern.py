@@ -7,8 +7,8 @@ this layer or the MCP server.
 
 from __future__ import annotations
 
-from kotlin_security_mcp.domain.patterns import SecurePattern
-from kotlin_security_mcp.domain.ports import SecurePatternCatalog
+from code_security_mcp.domain.patterns import SecurePattern
+from code_security_mcp.domain.ports import SecurePatternCatalog
 
 
 class SuggestSecurePatternUseCase:

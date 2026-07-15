@@ -15,8 +15,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from kotlin_security_mcp.domain.models import ScanResult
-from kotlin_security_mcp.domain.patterns import SecurePattern
+from code_security_mcp.domain.models import ScanResult
+from code_security_mcp.domain.patterns import SecurePattern
 
 
 @runtime_checkable

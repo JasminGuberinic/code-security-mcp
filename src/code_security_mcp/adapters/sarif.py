@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Any
 from urllib.parse import unquote, urlparse
 
-from kotlin_security_mcp.domain.models import Finding, ScanResult, Severity
+from code_security_mcp.domain.models import Finding, ScanResult, Severity
 
 # How SARIF's `level` strings map onto our three-value Severity. Anything we do
 # not recognize falls back to WARNING — a safe, attention-worthy default.

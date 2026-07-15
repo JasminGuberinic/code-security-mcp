@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from kotlin_security_mcp.domain.models import ScanResult
-from kotlin_security_mcp.domain.ports import SecurityAnalyzer
+from code_security_mcp.domain.models import ScanResult
+from code_security_mcp.domain.ports import SecurityAnalyzer
 
 
 class ScanCodeUseCase:
