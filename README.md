@@ -18,6 +18,9 @@ detekt ruleset (Spring / WebFlux / Ktor / Quarkus / Micronaut / Vert.x).
 |------|--------------|
 | `security_scan(path)` | Scan a Kotlin file/directory and return every security finding. |
 
+Only **security** findings are returned — detekt's built-in style/complexity
+rules are switched off, so the agent gets signal, not noise.
+
 _(More tools — `secure_pattern`, `review_diff`, and tree-sitter navigation —
 are on the roadmap.)_
 

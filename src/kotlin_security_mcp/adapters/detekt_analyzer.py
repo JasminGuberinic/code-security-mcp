@@ -89,6 +89,11 @@ class DetektAnalyzer:
             str(target),
             "--plugins",
             self._joined_plugin_jars(),
+            # Turn OFF detekt's built-in rule sets (style, complexity, naming, ...).
+            # We are a *security* tool: the agent should get security findings only,
+            # not "TooManyFunctions" or "MagicNumber" noise. This leaves just the
+            # rules our plugin jars contribute.
+            "--disable-default-rulesets",
             "--report",
             f"sarif:{report_path}",
         ]
