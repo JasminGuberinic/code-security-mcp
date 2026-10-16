@@ -62,3 +62,67 @@ def test_unknown_level_defaults_to_warning() -> None:
     report["runs"][0]["results"][0]["level"] = "something-weird"
     result = parse_sarif_report(report)
     assert result.findings[0].severity is Severity.WARNING
+
+
+def test_cwe_is_lifted_out_of_a_detekt_message():
+    """detekt carries the CWE inline; it belongs in its own field.
+
+    Bandit already reports CWE structurally, so without this a consumer would
+    have to parse prose for Kotlin and read a field for Python.
+    """
+    report = {
+        "runs": [
+            {
+                "results": [
+                    {
+                        "ruleId": "detekt.Sec.HardcodedAesKey",
+                        "message": {
+                            "text": "SecretKeySpec with hardcoded key material "
+                            "[CWE-321] — Fix: load it from a KeyStore"
+                        },
+                        "level": "warning",
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {"uri": "file:///tmp/A.kt"},
+                                    "region": {"startLine": 13},
+                                }
+                            }
+                        ],
+                    }
+                ]
+            }
+        ]
+    }
+
+    finding = parse_sarif_report(report).findings[0]
+
+    assert finding.cwe == "CWE-321"
+    # The message keeps the remediation text; we copy the CWE, we do not move it.
+    assert "Fix:" in finding.message
+
+
+def test_cwe_is_none_when_the_message_does_not_mention_one():
+    report = {
+        "runs": [
+            {
+                "results": [
+                    {
+                        "ruleId": "SomeRule",
+                        "message": {"text": "a finding with no weakness id"},
+                        "level": "error",
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {"uri": "file:///tmp/B.kt"},
+                                    "region": {"startLine": 1},
+                                }
+                            }
+                        ],
+                    }
+                ]
+            }
+        ]
+    }
+
+    assert parse_sarif_report(report).findings[0].cwe is None

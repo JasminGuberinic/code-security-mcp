@@ -12,10 +12,14 @@ of crashing the whole scan.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 from urllib.parse import unquote, urlparse
 
 from code_security_mcp.domain.models import Finding, ScanResult, Severity
+
+# Our detekt rules spell the weakness inline, e.g. "... [CWE-327] — Fix: ...".
+_CWE_IN_TEXT = re.compile(r"\bCWE-(\d{1,4})\b", re.IGNORECASE)
 
 # How SARIF's `level` strings map onto our three-value Severity. Anything we do
 # not recognize falls back to WARNING — a safe, attention-worthy default.
@@ -43,13 +47,32 @@ def parse_sarif_report(report: dict[str, Any]) -> ScanResult:
 
 def _finding_from_result(result: dict[str, Any]) -> Finding:
     """Build one Finding from one SARIF `result` object."""
+    message = _message_of(result)
     return Finding(
         rule_id=_rule_id_of(result),
-        message=_message_of(result),
+        message=message,
         file_path=_file_path_of(result),
         line=_line_of(result),
         severity=_severity_of(result),
+        cwe=_cwe_of(result, message),
     )
+
+
+def _cwe_of(result: dict[str, Any], message: str) -> str | None:
+    """The CWE identifier, from SARIF taxonomy if present, else from the message.
+
+    detekt has no SARIF taxonomy field for this, so our rules carry the CWE
+    inline as "[CWE-327]". Lifting it into its own field means every analyzer
+    reports CWE the same way — Bandit already does — and a consumer can filter
+    or group on it instead of parsing prose.
+    """
+    for relationship in result.get("taxa", []):
+        identifier = relationship.get("id", "")
+        if identifier.upper().startswith("CWE-"):
+            return identifier.upper()
+
+    match = _CWE_IN_TEXT.search(message)
+    return f"CWE-{match.group(1)}" if match else None
 
 
 def _rule_id_of(result: dict[str, Any]) -> str:

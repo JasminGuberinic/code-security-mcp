@@ -52,11 +52,17 @@ _MAX_FINDINGS = 500
 
 @mcp.tool()
 def security_scan(path: str) -> dict:
-    """Scan Kotlin/JVM code for security issues using a 216-rule analyzer.
+    """Scan source code for security vulnerabilities. Kotlin, Java, Python, C#, JS/TS.
 
-    Point this at a file or directory. It returns every security finding the
-    analyzer reports — rule id, message, location, and severity — so the agent
-    can fix issues *while writing*, not after.
+    Use this after writing or changing code, before committing, or whenever asked
+    to check code for security problems. Each language is routed to its own native
+    analyzer — Kotlin to detekt with a 216-rule framework-aware ruleset, Java to
+    SpotBugs with FindSecBugs, Python to Bandit, C# to the Roslyn security
+    analyzers, JS/TS to ESLint with eslint-plugin-security — so findings are real,
+    not generic pattern matches. Mixed-language directories are routed per file.
+
+    Returns rule id, message, file, line, severity and CWE where the analyzer
+    reports one, so issues can be fixed while writing rather than after.
 
     Args:
         path: File or directory to scan (absolute, or relative to the project).
@@ -68,11 +74,15 @@ def security_scan(path: str) -> dict:
 
 @mcp.tool()
 def review_diff(diff: str) -> dict:
-    """Security-review a unified diff: flag issues the change *introduces*.
+    """Security-review a diff: flag only what the change introduces. All languages.
 
-    Paste a unified diff (e.g. the output of `git diff`) after editing Kotlin
-    code. Only findings on lines the diff adds are returned, so the agent sees
-    exactly what its change is responsible for — a self-check before committing.
+    Use this before committing, or when asked to review a change for security.
+    Pass the output of `git diff`. Only findings on lines the diff adds are
+    returned, so pre-existing issues elsewhere in the file stay out of the way and
+    the review covers exactly what this change is responsible for.
+
+    Files are routed to their native analyzer by extension, so a diff touching
+    Kotlin, Python and TypeScript is reviewed by all three.
 
     Args:
         diff: A unified diff whose file paths are relative to the current
@@ -85,25 +95,38 @@ def review_diff(diff: str) -> dict:
 
 @mcp.tool()
 def secure_pattern(task: str, framework: str = "") -> dict:
-    """Get the secure way to do a risky Kotlin/JVM task, before writing it.
+    """Get the secure way to do a risky JVM task, before writing the code.
 
-    Ask "how do I do X securely" and get vetted before/after snippets and the
-    reason — so the agent writes the safe version the first time.
+    Use this *before* writing anything that touches cookies, sessions, secrets,
+    keys, tokens, TLS, CORS or randomness, so the safe version gets written the
+    first time instead of being corrected afterwards. Returns a vetted
+    insecure/secure pair with the reason and the CWE.
+
+    Covers Spring WebFlux, Ktor and Vert.x, plus patterns that apply to any JVM
+    stack. Searching without a framework is usually better: a framework filter
+    returns nothing when the pattern exists only in generic form.
 
     Args:
-        task: What you want to do, e.g. "create a session cookie", "store a JWT
-            secret", "configure CORS", "read the current user in reactive code".
-        framework: Optional stack to narrow results, e.g. "spring-webflux",
-            "ktor", "vertx". Leave empty to search all frameworks.
+        task: What you want to do, e.g. "session cookie", "store a secret",
+            "random token", "CORS", "TLS", "current user in reactive code".
+            Short noun phrases match better than full sentences.
+        framework: Optional, e.g. "spring-webflux", "ktor", "vertx". Leave empty
+            to search everything.
     """
     use_case = _build_pattern_use_case()
-    patterns = use_case.execute(framework or None, task)
-    return {
+    suggestion = use_case.execute(framework or None, task)
+    payload = {
         "task": task,
         "framework": framework or "any",
-        "count": len(patterns),
-        "patterns": [_pattern_to_dict(pattern) for pattern in patterns],
+        "count": len(suggestion.patterns),
+        "patterns": [_pattern_to_dict(pattern) for pattern in suggestion.patterns],
     }
+    if suggestion.widened:
+        payload["note"] = (
+            f"No pattern is written for {framework}; these come from other stacks. "
+            "The principle holds — adapt the snippet to your framework."
+        )
+    return payload
 
 
 def _build_use_case() -> ScanCodeUseCase:
