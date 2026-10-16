@@ -45,6 +45,7 @@ dev = [
 # MCP clients (Claude Code, Cursor) will launch the server through this entry point.
 [project.scripts]
 code-security-mcp = "code_security_mcp.server:main"
+code-security-mcp-setup = "code_security_mcp.setup_cli:main"
 
 [tool.pytest.ini_options]
 # Integration tests run the REAL analyzers and need their tools installed, so we
@@ -62,3 +63,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/code_security_mcp"]
+# The analyzer setup script ships inside the package so `pipx install`
+# users get `code-security-mcp-setup` without cloning the repository.
+artifacts = ["src/code_security_mcp/_bundled/setup.sh"]

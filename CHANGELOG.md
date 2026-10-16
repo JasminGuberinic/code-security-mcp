@@ -6,6 +6,34 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+- **Tool descriptions advertised Kotlin only.** The server has routed five
+  languages for some time, but the three MCP tools still described themselves as
+  Kotlin/JVM. An agent reads those descriptions to decide whether a tool applies,
+  so Python, C# and JS/TS analysis was effectively unreachable. The descriptions
+  now name the languages, the analyzer behind each, and the situations that
+  should trigger a call.
+- **`secure_pattern` returned nothing when a framework had no pattern.** Asking
+  for a session cookie under `spring-webflux` returned an empty list, because the
+  only cookie recipe is written for Vert.x — which reads as "this task has no
+  secure pattern", the one answer that must never be given when the catalog does
+  hold advice. A framework filter that matches nothing now widens to an
+  unfiltered search and flags the response with a `note`.
+- **CWE was reported inconsistently.** Bandit findings carried `cwe` as a field
+  while detekt findings left it null and spelled the weakness inside the message
+  text. The SARIF reader now lifts `CWE-nnn` out of the message (and reads a
+  SARIF taxonomy entry when one is present), so every analyzer reports it the
+  same way.
+
+### Added
+- **`code-security-mcp-setup`**: the analyzer setup script now ships inside the
+  package and is exposed as its own command, so a `pipx install` user can finish
+  the install without cloning the repository. `scripts/setup.sh` stays as a thin
+  wrapper around the same single copy.
+- **Agent skill** (`skill/code-security-review/`): a `SKILL.md` and pattern
+  reference that tell an agent which of the three tools to reach for, how to act
+  on severity, and how to report findings back.
+
 ### Added (continued)
 - **PyPI packaging**: builds a clean wheel/sdist (verified with `twine check`)
   and a `Release` GitHub Actions workflow that publishes via PyPI Trusted

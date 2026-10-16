@@ -22,26 +22,37 @@ security tool**, not one generic scanner stretched across everything.
 ## Install
 
 ```bash
-pipx install code-security-mcp        # or:  uvx code-security-mcp
+pipx install code-security-mcp
+pipx inject code-security-mcp bandit            # Python analysis
+code-security-mcp-setup                         # Kotlin + Java analyzers
 ```
 
-This installs the `code-security-mcp` server. Python analysis works immediately
-(`pipx inject code-security-mcp bandit`); the JVM/.NET/JS analyzers are external
-tools you point at with env vars — the setup script below fetches them for you.
+`code-security-mcp-setup` downloads the analyzers into an isolated cache
+(`~/.cache/code-security-mcp` — nothing global is touched) and prints the
+`claude mcp add …` command to paste. Re-running it is safe; anything already
+present is skipped.
 
-## Quickstart (from source, with all analyzers)
+Add the heavier analyzers when you need them:
+
+```bash
+code-security-mcp-setup --with-dotnet    # C#  (isolated .NET SDK)
+code-security-mcp-setup --with-eslint    # JS/TS (needs node + npm on PATH)
+```
+
+### From source
 
 ```bash
 git clone https://github.com/JasminGuberinic/code-security-mcp
 cd code-security-mcp
 python3 -m venv .venv && .venv/bin/pip install -e ".[python]"
-
-# Download the analyzers into an isolated cache (nothing global is touched):
-./scripts/setup.sh                              # Kotlin + Java
-./scripts/setup.sh --with-dotnet --with-eslint  # + C# and JS/TS (optional)
+./scripts/setup.sh                              # same script, same flags
 ```
 
-The script prints the `claude mcp add …` command to paste.
+### Skill
+
+The repository ships an agent skill under `skill/code-security-review/`, which
+tells an agent which tool to reach for and how to act on the findings. Copy the
+folder into your agent's skills directory, or install the packaged zip.
 
 ## Why
 
