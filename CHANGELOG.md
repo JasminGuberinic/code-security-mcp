@@ -30,9 +30,6 @@ All notable changes to this project are documented here. The format is based on
   package and is exposed as its own command, so a `pipx install` user can finish
   the install without cloning the repository. `scripts/setup.sh` stays as a thin
   wrapper around the same single copy.
-- **Agent skill** (`skill/code-security-review/`): a `SKILL.md` and pattern
-  reference that tell an agent which of the three tools to reach for, how to act
-  on severity, and how to report findings back.
 
 ### Added (continued)
 - **PyPI packaging**: builds a clean wheel/sdist (verified with `twine check`)

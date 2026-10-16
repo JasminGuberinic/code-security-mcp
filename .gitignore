@@ -18,6 +18,3 @@ dist/
 
 # Detekt working files that the analyzer may produce
 *.sarif
-
-# Packaged skill artifact — rebuilt from skill/code-security-review/
-skill/*.zip

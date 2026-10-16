@@ -48,12 +48,6 @@ python3 -m venv .venv && .venv/bin/pip install -e ".[python]"
 ./scripts/setup.sh                              # same script, same flags
 ```
 
-### Skill
-
-The repository ships an agent skill under `skill/code-security-review/`, which
-tells an agent which tool to reach for and how to act on the findings. Copy the
-folder into your agent's skills directory, or install the packaged zip.
-
 ## Why
 
 Generic assistants and multi-language scanners are shallow on framework idioms —
